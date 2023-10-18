@@ -1,7 +1,8 @@
-requests
+requests==2.31.0
 pandas
 numpy
 scipy
 soxr
+colorednoise
 soundfile
 numba
