@@ -59,7 +59,7 @@ def __bin_interp(upcount, lwcount, upthr, lwthr, Margin, tol):
 
         return asl_ms_log, cc
 
-def calculateP56ASL(x, fs, nbits=16, M = 15.9, H = 0.2, T = 0.03):
+def calculateP56ASL(x, fs, nbits=16, M = 15.9, H = 0.2, T = 0.03, require_activity: bool = True):
     '''
     This implements ITU P.56 method B.
     Usage:  asl_P56(x, fs, nbits)
@@ -68,7 +68,8 @@ def calculateP56ASL(x, fs, nbits=16, M = 15.9, H = 0.2, T = 0.03):
         nbits         - the number of bits (default: 16)
         M             - margin in dB of the difference between threshold and active speech level (default: 15.9)
         H             - hangover time in seconds (default: 0.2)
-        T             - time constant of smoothing, in seconds (default:0.3
+        T             - time constant of smoothing, in seconds (default:0.3)
+        require_activity - raise exception if no activity is found
     Example call:
         asl_rms, asl, c0 = asl_P56(x, fs, nbits)
     References:
@@ -116,8 +117,11 @@ def calculateP56ASL(x, fs, nbits=16, M = 15.9, H = 0.2, T = 0.03):
     activity = 0
     asl_dB = -100
 
-    if a[0] == 0:
-        raise ASLException('Could not detect any activity')
+    if (a[0] == 0):
+        if require_activity:
+            raise ASLException('Could not detect any activity')
+        else:
+            return asl_dB, activity
     else:
         AdB1 = 10 * np.log10(sq / a[0] + eps)
 
@@ -154,7 +158,6 @@ def calculateP56ASL(x, fs, nbits=16, M = 15.9, H = 0.2, T = 0.03):
 def calculateP56ASLEx(x, fs, preFilter: PrefilterP56='NoFilter', minAmplitude=0.1, maxAmplitude=1.0, **kwargs):
     # call calculateP56ASL() with additional pre-filter and range check of signal:
     x = np.array(x)
-    maxAbsValue = np.abs(x).max()
 
     # apply pre-filter, if applicable
     preFilter = P56Prefilter(preFilter)
@@ -165,6 +168,7 @@ def calculateP56ASLEx(x, fs, preFilter: PrefilterP56='NoFilter', minAmplitude=0.
         y = x
 
     # if max. amplitude is larger than maxAbsValue or smaller than minAbsValue, rescale signal
+    maxAbsValue = np.abs(x).max()
     if (maxAbsValue > maxAmplitude) or (maxAbsValue < minAmplitude):
         y = y / maxAbsValue
         offset_dB = 20*np.log10(maxAbsValue)

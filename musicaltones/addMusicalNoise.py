@@ -76,13 +76,14 @@ def applySpecSub(signal: np.ndarray, fs: int, k: float, snr: float, speechLevel:
         output[:L, i] = sHat[:L]
 
         # recalibrate after spectral subtraction
-        speechLevelProcessed, _ = calculateP56ASLEx(output[:,i], fs, prefilterP56)
-        if speechLevel is None:
-            diff = speechLevelCurrent - speechLevelProcessed
-        else:
-            diff = speechLevel - speechLevelProcessed
+        speechLevelProcessed, _ = calculateP56ASLEx(output[:,i], fs, prefilterP56, require_activity=False)
+        if speechLevelProcessed > -70:
+            if speechLevel is None:
+                diff = speechLevelCurrent - speechLevelProcessed
+            else:
+                diff = speechLevel - speechLevelProcessed
 
-        output[:,i] *= np.power(10, diff/20)
+            output[:,i] *= np.power(10, diff/20)
 
     return output.squeeze()
 

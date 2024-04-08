@@ -1,0 +1,3 @@
+[submodule "matlab_addMusicalNoise"]
+	path = matlab_addMusicalNoise
+	url = https://github.com/goesjon/addMusicalNoise.git
